@@ -47,7 +47,7 @@ const uploadResume = async (req, res) => {
       success: true,
       message: "Resume uploaded successfully",
       fileName: req.file.filename,
-      resumeText: pdfData.text,
+      resumeText,
     });
   } catch (error) {
     console.log(`error from controller upload resume ${error}`);
