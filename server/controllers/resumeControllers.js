@@ -1,5 +1,6 @@
 import fs from "fs";
 import { PDFParse } from "pdf-parse";
+import { CanvasFactory } from "pdf-parse/worker";
 
 // upload resume
 const uploadResume = async (req, res) => {
@@ -15,9 +16,12 @@ const uploadResume = async (req, res) => {
 
     const parser = new PDFParse({
       data: fileBuffer,
+      CanvasFactory,
     });
 
     const pdfData = await parser.getText();
+
+    await parser.destroy();
 
     return res.status(200).json({
       success: true,
