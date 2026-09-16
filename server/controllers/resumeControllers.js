@@ -1,6 +1,5 @@
 import fs from "fs";
-import { PDFParse } from "pdf-parse";
-import { CanvasFactory } from "pdf-parse/worker";
+import PDFParser from "pdf2json";
 
 // upload resume
 const uploadResume = async (req, res) => {
@@ -12,16 +11,37 @@ const uploadResume = async (req, res) => {
       });
     }
 
-    const fileBuffer = fs.readFileSync(req.file.path);
+    // const fileBuffer = fs.readFileSync(req.file.path);
 
-    const parser = new PDFParse({
-      data: fileBuffer,
-      CanvasFactory,
+    // const pdfData = await pdfParse(fileBuffer);
+
+    const pdfParser = new PDFParser();
+
+    const resumeText = await new Promise((resolve, reject) => {
+      pdfParser.on("pdfParser_dataError", (error) => {
+        reject(error);
+      });
+
+      pdfParser.on("pdfParser_dataReady", (pdfData) => {
+        let text = "";
+
+        pdfData.Pages.forEach((page) => {
+          page.Texts.forEach((item) => {
+            item.R.forEach((run) => {
+              try {
+                text += decodeURIComponent(run.T) + " ";
+              } catch {
+                text += run.T + " ";
+              }
+            });
+          });
+        });
+
+        resolve(text);
+      });
+
+      pdfParser.loadPDF(req.file.path);
     });
-
-    const pdfData = await parser.getText();
-
-    await parser.destroy();
 
     return res.status(200).json({
       success: true,
